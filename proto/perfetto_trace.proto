@@ -1,0 +1,117 @@
+// This file contains just the protobuf messages that we need. See
+// https://github.com/google/perfetto/blob/main/protos/perfetto/trace/perfetto_trace.proto for the
+// full definitions. If you need extra fields or messages, just copy over the bits you need. License
+// is as-per the file at the above link.
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message Trace {
+  repeated TracePacket packet = 1;
+}
+
+message TracePacket {
+  optional uint64 timestamp = 8;
+
+  optional uint32 timestamp_clock_id = 58;
+
+  oneof data {
+    TrackEvent track_event = 11;
+    TrackDescriptor track_descriptor = 60;
+  }
+
+  oneof optional_trusted_packet_sequence_id {
+    uint32 trusted_packet_sequence_id = 10;
+  }
+
+  optional InternedData interned_data = 12;
+
+  enum SequenceFlags {
+    SEQ_INCREMENTAL_STATE_CLEARED = 1;
+  }
+  optional uint32 sequence_flags = 13;
+}
+
+message TrackEvent {
+  oneof name_field {
+    uint64 name_iid = 10;
+    string name = 23;
+  }
+
+  enum Type {
+    TYPE_SLICE_BEGIN = 1;
+    TYPE_SLICE_END = 2;
+  }
+  optional Type type = 9;
+
+  optional uint64 track_uuid = 11;
+
+  repeated DebugAnnotation debug_annotations = 4;
+
+  oneof source_location_field {
+    SourceLocation source_location = 33;
+    uint64 source_location_iid = 34;
+  }
+}
+
+message TrackDescriptor {
+  optional uint64 uuid = 1;
+  optional uint64 parent_uuid = 5;
+  oneof static_or_dynamic_name {
+    string name = 2;
+  }
+
+  optional ProcessDescriptor process = 3;
+  optional ThreadDescriptor thread = 4;
+}
+
+message ProcessDescriptor {
+  optional int32 pid = 1;
+  repeated string cmdline = 2;
+  optional string process_name = 6;
+}
+
+message ThreadDescriptor {
+  optional int32 pid = 1;
+  optional int32 tid = 2;
+  optional string thread_name = 5;
+}
+
+message SourceLocation {
+  optional uint64 iid = 1;
+  optional string file_name = 2;
+  optional string function_name = 3;
+  optional uint32 line_number = 4;
+}
+
+message InternedData {
+  repeated EventName event_names = 2;
+  repeated DebugAnnotationName debug_annotation_names = 3;
+  repeated SourceLocation source_locations = 4;
+}
+
+message DebugAnnotation {
+  oneof name_field {
+    uint64 name_iid = 1;
+    string name = 10;
+  }
+
+  oneof value {
+    bool bool_value = 2;
+    uint64 uint_value = 3;
+    int64 int_value = 4;
+    double double_value = 5;
+    string string_value = 6;
+  }
+}
+
+message DebugAnnotationName {
+  optional uint64 iid = 1;
+  optional string name = 2;
+}
+
+message EventName {
+  optional uint64 iid = 1;
+  optional string name = 2;
+}

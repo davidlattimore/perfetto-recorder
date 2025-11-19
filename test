@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+cargo test
+cargo test --features enable
+cargo run --release --example benchmark --features enable
+cargo run --release --example rayon --features enable -- /dev/null
