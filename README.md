@@ -6,11 +6,16 @@ doing. See [perfetto.dev](https://perfetto.dev/) for more information about Perf
 ## Example usage
 
 ```rust
+use perfetto_recorder::scope;
+use perfetto_recorder::TraceBuilder;
+use perfetto_recorder::ThreadTraceData;
+
+perfetto_recorder::start()?;
 {
-    let _span1 = scope!("foo", value = 1_u64, foo = 2_i64, baz = "baz");
+    scope!("foo", value = 1_u64, foo = 2_i64, baz = "baz");
     // Do some work.
 }
-TraceBuilder::new()
+TraceBuilder::new()?
     .process_thread_data(&ThreadTraceData::take_current_thread())
     .write_to_file("out.pftrace");
 ```
@@ -70,7 +75,7 @@ Prost in-memory representation first, but this hasn't been a priority.
 ## Unsupported features
 
 This crate doesn't support async usage. Put another way, it assumes that a span opened on one thread
-will be closed on that same thread. tracing-perfetto-sdk-layer has support for this.
+will be closed on that same thread. tracing-perfetto-sdk-layer has support for async.
 
 tracing-perfetto-sdk-layer also has support for receiving perfetto tracing data from the system,
 allowing the trace to also include things like scheduling events.

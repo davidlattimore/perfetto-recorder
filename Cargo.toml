@@ -2,6 +2,7 @@
 name = "perfetto-recorder"
 version = "0.1.0"
 edition = "2024"
+description = "A low overhead way to record perfetto traces from Rust code"
 repository = "https://github.com/davidlattimore/perfetto-recorder"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
