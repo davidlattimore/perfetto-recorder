@@ -42,6 +42,7 @@ message TrackEvent {
   enum Type {
     TYPE_SLICE_BEGIN = 1;
     TYPE_SLICE_END = 2;
+    TYPE_COUNTER = 4;
   }
   optional Type type = 9;
 
@@ -52,6 +53,11 @@ message TrackEvent {
   oneof source_location_field {
     SourceLocation source_location = 33;
     uint64 source_location_iid = 34;
+  }
+
+  oneof counter_value_field {
+    int64 counter_value = 30;
+    double double_counter_value = 44;
   }
 }
 
@@ -64,6 +70,7 @@ message TrackDescriptor {
 
   optional ProcessDescriptor process = 3;
   optional ThreadDescriptor thread = 4;
+  optional CounterDescriptor counter = 8;
 }
 
 message ProcessDescriptor {
@@ -76,6 +83,19 @@ message ThreadDescriptor {
   optional int32 pid = 1;
   optional int32 tid = 2;
   optional string thread_name = 5;
+}
+
+message CounterDescriptor {
+  enum Unit {
+    UNIT_UNSPECIFIED = 0;
+    UNIT_TIME_NS = 1;
+    UNIT_COUNT = 2;
+    UNIT_SIZE_BYTES = 3;
+  }
+  optional Unit unit = 1;
+  optional string unit_name = 2;
+  optional int64 unit_multiplier = 3;
+  optional bool is_incremental = 4;
 }
 
 message SourceLocation {
