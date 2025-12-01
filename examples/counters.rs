@@ -1,5 +1,7 @@
 use anyhow::Result;
-use perfetto_recorder::{CounterUnit, TraceBuilder};
+use perfetto_recorder::{
+    CounterUnit, ThreadTraceData, TraceBuilder, record_counter_f64, record_counter_i64,
+};
 use std::thread;
 use std::time::Duration;
 
@@ -53,21 +55,25 @@ fn main() -> Result<()> {
         let fps = 45.0 + 15.0 * (i as f64 * 0.15).cos();
 
         // Record counter values
-        trace.record_counter_f64(cpu_counter, timestamp, cpu_usage);
-        trace.record_counter_i64(memory_counter, timestamp, memory_mb);
-        trace.record_counter_f64(fps_counter, timestamp, fps);
+        record_counter_f64(cpu_counter, timestamp, cpu_usage);
+        record_counter_i64(memory_counter, timestamp, memory_mb);
+        record_counter_f64(fps_counter, timestamp, fps);
 
         // Add some spikes at interesting points
         if i == 30 {
-            trace.record_counter_f64(cpu_counter, timestamp, 95.0); // CPU spike
+            record_counter_f64(cpu_counter, timestamp, 95.0); // CPU spike
         }
         if i == 60 {
-            trace.record_counter_i64(memory_counter, timestamp, 1800); // Memory spike
+            record_counter_i64(memory_counter, timestamp, 1800); // Memory spike
         }
 
         // Small delay between samples (10ms)
         thread::sleep(Duration::from_millis(10));
     }
+
+    // Process the thread data to convert events to trace packets
+    let thread_data = ThreadTraceData::take_current_thread();
+    trace.process_thread_data(&thread_data);
 
     // Write the trace to a file
     trace.write_to_file(&trace_file)?;
