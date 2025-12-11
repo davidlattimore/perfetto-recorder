@@ -243,7 +243,7 @@ pub enum Event {
     /// The end of a span. Must be followed by a timestamp.
     EndSpan(&'static SourceInfo),
 
-    /// The time at which the preceeding start/end span occurred.
+    /// The time at which the preceding start/end span occurred.
     Timestamp(Instant),
 
     Bool(bool),
