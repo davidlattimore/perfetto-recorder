@@ -1,7 +1,5 @@
 use anyhow::Result;
-use perfetto_recorder::{
-    CounterUnit, ThreadTraceData, TraceBuilder, record_counter_f64, record_counter_i64,
-};
+use perfetto_recorder::{CounterUnit, ThreadTraceData, TraceBuilder};
 use std::thread;
 use std::time::Duration;
 
@@ -17,21 +15,21 @@ fn main() -> Result<()> {
     let mut trace = TraceBuilder::new()?;
 
     // Create counter tracks for system metrics
-    let cpu_counter = trace.create_counter_track(
+    let mut cpu_counter = trace.create_counter_track(
         "CPU Usage",
         CounterUnit::Custom("%".to_string()),
         1,     // Unit multiplier
         false, // Not incremental (absolute values)
     );
 
-    let memory_counter = trace.create_counter_track(
+    let mut memory_counter = trace.create_counter_track(
         "Memory Usage",
         CounterUnit::SizeBytes,
         1024 * 1024, // Convert to MB
         false,       // Not incremental
     );
 
-    let fps_counter = trace.create_counter_track(
+    let mut fps_counter = trace.create_counter_track(
         "Frame Rate",
         CounterUnit::Custom("fps".to_string()),
         1,
@@ -55,16 +53,16 @@ fn main() -> Result<()> {
         let fps = 45.0 + 15.0 * (i as f64 * 0.15).cos();
 
         // Record counter values
-        record_counter_f64(cpu_counter, timestamp, cpu_usage);
-        record_counter_i64(memory_counter, timestamp, memory_mb);
-        record_counter_f64(fps_counter, timestamp, fps);
+        cpu_counter.record_f64(timestamp, cpu_usage);
+        memory_counter.record_i64(timestamp, memory_mb);
+        fps_counter.record_f64(timestamp, fps);
 
         // Add some spikes at interesting points
         if i == 30 {
-            record_counter_f64(cpu_counter, timestamp, 95.0); // CPU spike
+            cpu_counter.record_f64(timestamp, 95.0); // CPU spike
         }
         if i == 60 {
-            record_counter_i64(memory_counter, timestamp, 1800); // Memory spike
+            memory_counter.record_i64(timestamp, 1800); // Memory spike
         }
 
         // Small delay between samples (10ms)

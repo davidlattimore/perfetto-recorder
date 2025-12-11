@@ -1,6 +1,6 @@
 use perfetto_recorder::ThreadTraceData;
 use perfetto_recorder::TraceBuilder;
-use perfetto_recorder::{CounterUnit, record_counter_f64, record_counter_i64, scope};
+use perfetto_recorder::{CounterUnit, scope};
 use std::time::Instant;
 
 const N: u32 = 100_000;
@@ -44,9 +44,9 @@ fn main() -> anyhow::Result<()> {
     perfetto_recorder::current_thread_reserve(N_COUNTERS as usize * 2); // 2 events per counter
 
     let mut builder = TraceBuilder::new()?;
-    let counter_i64 =
+    let mut counter_i64 =
         builder.create_counter_track("test_counter_i64", CounterUnit::Count, 1, false);
-    let counter_f64 = builder.create_counter_track(
+    let mut counter_f64 = builder.create_counter_track(
         "test_counter_f64",
         CounterUnit::Custom("%".to_string()),
         1,
@@ -57,7 +57,7 @@ fn main() -> anyhow::Result<()> {
     let start = Instant::now();
 
     for i in 0..N_COUNTERS {
-        record_counter_i64(counter_i64, perfetto_recorder::time(), i as i64);
+        counter_i64.record_i64(perfetto_recorder::time(), i as i64);
     }
 
     let elapsed = start.elapsed();
@@ -71,7 +71,7 @@ fn main() -> anyhow::Result<()> {
     let start = Instant::now();
 
     for i in 0..N_COUNTERS {
-        record_counter_f64(counter_f64, perfetto_recorder::time(), i as f64);
+        counter_f64.record_f64(perfetto_recorder::time(), i as f64);
     }
 
     let elapsed = start.elapsed();

@@ -756,74 +756,74 @@ pub struct CounterTrack {
     uuid: u64,
 }
 
-/// Records an integer counter value at a specific timestamp.
-///
-/// This function stores the counter value in thread-local storage. The value will be
-/// converted to the trace format when `TraceBuilder::process_thread_data()` is called.
-///
-/// # Arguments
-///
-/// * `counter` - The counter track to record to
-/// * `timestamp` - The timestamp for this value
-/// * `value` - The counter value
-///
-/// # Example
-///
-/// ```
-/// # use perfetto_recorder::*;
-/// # if perfetto_recorder::is_enabled() {
-/// start()?;
-/// let mut trace = TraceBuilder::new()?;
-/// let counter = trace.create_counter_track("Memory", CounterUnit::SizeBytes, 1, false);
-/// record_counter_i64(counter, perfetto_recorder::time(), 1024);
-/// # }
-/// # Ok::<(), Box<dyn std::error::Error>>(())
-/// ```
-#[inline(always)]
-pub fn record_counter_i64(counter: CounterTrack, timestamp: Instant, value: i64) {
-    if !RUNTIME_ENABLED.load(std::sync::atomic::Ordering::Relaxed) {
-        return;
+impl CounterTrack {
+    /// Records an integer counter value at a specific timestamp.
+    ///
+    /// This function stores the counter value in thread-local storage. The value will be
+    /// converted to the trace format when `TraceBuilder::process_thread_data()` is called.
+    ///
+    /// # Arguments
+    ///
+    /// * `timestamp` - The timestamp for this value
+    /// * `value` - The counter value
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use perfetto_recorder::*;
+    /// # if perfetto_recorder::is_enabled() {
+    /// start()?;
+    /// let mut trace = TraceBuilder::new()?;
+    /// let mut counter = trace.create_counter_track("Memory", CounterUnit::SizeBytes, 1, false);
+    /// counter.record_i64(perfetto_recorder::time(), 1024);
+    /// # }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    #[inline(always)]
+    pub fn record_i64(&mut self, timestamp: Instant, value: i64) {
+        if !RUNTIME_ENABLED.load(Ordering::Relaxed) {
+            return;
+        }
+        record_event(Event::CounterI64 {
+            uuid: self.uuid,
+            value,
+        });
+        record_event(Event::Timestamp(timestamp));
     }
-    record_event(Event::CounterI64 {
-        uuid: counter.uuid,
-        value,
-    });
-    record_event(Event::Timestamp(timestamp));
-}
 
-/// Records a floating-point counter value at a specific timestamp.
-///
-/// This function stores the counter value in thread-local storage. The value will be
-/// converted to the trace format when `TraceBuilder::process_thread_data()` is called.
-///
-/// # Arguments
-///
-/// * `counter` - The counter track to record to
-/// * `timestamp` - The timestamp for this value
-/// * `value` - The counter value
-///
-/// # Example
-///
-/// ```
-/// # use perfetto_recorder::*;
-/// # if perfetto_recorder::is_enabled() {
-/// start()?;
-/// let mut trace = TraceBuilder::new()?;
-/// let counter = trace.create_counter_track("CPU %", CounterUnit::Custom("%".to_string()), 1, false);
-/// record_counter_f64(counter, perfetto_recorder::time(), 42.5);
-/// # }
-/// # Ok::<(), Box<dyn std::error::Error>>(())
-/// ```
-#[inline(always)]
-pub fn record_counter_f64(counter: CounterTrack, timestamp: Instant, value: f64) {
-    if !RUNTIME_ENABLED.load(std::sync::atomic::Ordering::Relaxed) {
-        return;
+    /// Records a floating-point counter value at a specific timestamp.
+    ///
+    /// This function stores the counter value in thread-local storage. The value will be
+    /// converted to the trace format when `TraceBuilder::process_thread_data()` is called.
+    ///
+    /// # Arguments
+    ///
+    /// * `timestamp` - The timestamp for this value
+    /// * `value` - The counter value
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use perfetto_recorder::*;
+    /// # if perfetto_recorder::is_enabled() {
+    /// start()?;
+    /// let mut trace = TraceBuilder::new()?;
+    /// let mut counter = trace.create_counter_track("CPU %", CounterUnit::Custom("%".to_string()), 1, false);
+    /// counter.record_f64(perfetto_recorder::time(), 42.5);
+    /// # }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    #[inline(always)]
+    pub fn record_f64(&mut self, timestamp: Instant, value: f64) {
+        if !RUNTIME_ENABLED.load(Ordering::Relaxed) {
+            return;
+        }
+        record_event(Event::CounterF64 {
+            uuid: self.uuid,
+            value,
+        });
+        record_event(Event::Timestamp(timestamp));
     }
-    record_event(Event::CounterF64 {
-        uuid: counter.uuid,
-        value,
-    });
-    record_event(Event::Timestamp(timestamp));
 }
 
 impl TraceBuilder {
@@ -955,13 +955,13 @@ mod tests {
         let mut trace = TraceBuilder::new().unwrap();
 
         // Create different types of counter tracks
-        let cpu_counter =
+        let mut cpu_counter =
             trace.create_counter_track("CPU Usage", CounterUnit::Custom("%".to_string()), 1, false);
 
-        let memory_counter =
+        let mut memory_counter =
             trace.create_counter_track("Memory", CounterUnit::SizeBytes, 1024 * 1024, false);
 
-        let count_counter = trace.create_counter_track(
+        let mut count_counter = trace.create_counter_track(
             "Events",
             CounterUnit::Count,
             1,
@@ -970,14 +970,14 @@ mod tests {
 
         // Record some values
         let t1 = time();
-        record_counter_f64(cpu_counter, t1, 42.5);
-        record_counter_i64(memory_counter, t1, 1024);
-        record_counter_i64(count_counter, t1, 100);
+        cpu_counter.record_f64(t1, 42.5);
+        memory_counter.record_i64(t1, 1024);
+        count_counter.record_i64(t1, 100);
 
         let t2 = time();
-        record_counter_f64(cpu_counter, t2, 75.0);
-        record_counter_i64(memory_counter, t2, 2048);
-        record_counter_i64(count_counter, t2, 50);
+        cpu_counter.record_f64(t2, 75.0);
+        memory_counter.record_i64(t2, 2048);
+        count_counter.record_i64(t2, 50);
 
         // Process the thread data to convert events to trace packets
         let thread_data = ThreadTraceData::take_current_thread();
