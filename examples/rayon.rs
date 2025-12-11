@@ -1,12 +1,12 @@
 use anyhow::Context;
 use anyhow::anyhow;
 use perfetto_recorder::ThreadTraceData;
+use perfetto_recorder::TraceBuilder;
 use perfetto_recorder::scope;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::sync::Mutex;
 use std::time::Duration;
-use perfetto_recorder::TraceBuilder;
 
 const N: u64 = 100;
 

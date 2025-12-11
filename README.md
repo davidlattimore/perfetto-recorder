@@ -74,8 +74,8 @@ you're analysing performance.
 ### fastant
 
 Turn this feature on in order to get faster span captures. Typically, this feature would be expected
-to reduce span overhead from about 115 ns to aboout 50 ns. This feature does however incur about a
-20 ms delay at program startup. If you use this feature, it's suggested that you enable it together
+to reduce span overhead from about 115 ns to about 50 ns. This feature does however incur about a 20
+ms delay at program startup. If you use this feature, it's suggested that you enable it together
 with the `enable` feature. e.g.  something like this.
 
 ```toml

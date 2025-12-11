@@ -1,5 +1,7 @@
 use anyhow::Result;
-use perfetto_recorder::{CounterUnit, ThreadTraceData, TraceBuilder};
+use perfetto_recorder::CounterUnit;
+use perfetto_recorder::ThreadTraceData;
+use perfetto_recorder::TraceBuilder;
 use std::thread;
 use std::time::Duration;
 

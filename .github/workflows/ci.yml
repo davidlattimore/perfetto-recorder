@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    branches: [ '**' ]
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: '-D warnings'
+
+jobs:
+  test:
+    name: Test
+
+    runs-on:
+      - ubuntu-24.04
+
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: davidlattimore/wild-action@latest
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo test
+      - run: cargo test --features enable
+      - run: cargo run --release --example benchmark --features enable
+      - run: cargo run --release --example rayon --features enable -- /dev/null
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    # This is where we check that we're not using features from a more recent rust version. When
+    # updating this, please also update workspace.package.rust-version in `Cargo.toml`.
+    - uses: dtolnay/rust-toolchain@1.88.0
+      id: rust-toolchain
+      with:
+        components: clippy
+    - uses: davidlattimore/wild-action@latest
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-clippy-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
+    - run: cargo clippy --workspace --target x86_64-unknown-linux-gnu
+
+  rustfmt:
+    name: Check formatting
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: dtolnay/rust-toolchain@nightly
+      with:
+        components: rustfmt
+    - run: cargo fmt --all -- --check
+
+  spelling:
+    name: Spell Check with Typos
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Spell Check Repo
+        uses: crate-ci/typos@v1.40.0
