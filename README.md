@@ -5,6 +5,8 @@ doing. See [perfetto.dev](https://perfetto.dev/) for more information about Perf
 
 ## Example usage
 
+### Recording spans
+
 ```rust
 use perfetto_recorder::scope;
 use perfetto_recorder::TraceBuilder;
@@ -26,7 +28,40 @@ If your application uses multiple threads, then you'll need to call
 `ThreadTraceData::take_current_thread()` from each thread in order to gather the trace data from
 those threads. See `examples/rayon.rs` for an example.
 
-You should then be able to open `out.pftrace` in the [perfetto UI](https://ui.perfetto.dev/).
+### Recording counter tracks
+
+Counter tracks allow you to record time-series data like CPU usage, memory usage, frame rates, etc.:
+
+```rust
+use perfetto_recorder::{CounterUnit, TraceBuilder};
+
+perfetto_recorder::start()?;
+
+let mut trace = TraceBuilder::new()?;
+
+// Create counter tracks
+let cpu_counter = trace.create_counter_track(
+    "CPU Usage",
+    CounterUnit::Custom("%".to_string()),
+    1,     // Unit multiplier
+    false, // Not incremental (absolute values)
+);
+
+let memory_counter = trace.create_counter_track(
+    "Memory Usage",
+    CounterUnit::SizeBytes,
+    1024 * 1024, // Convert to MB
+    false,
+);
+
+// Record counter values at different timestamps
+trace.record_counter_f64(cpu_counter, perfetto_recorder::time(), 42.5);
+trace.record_counter_i64(memory_counter, perfetto_recorder::time(), 1024);
+
+trace.write_to_file("counters.pftrace")?;
+```
+
+You should then be able to open `counters.pftrace` in the [perfetto UI](https://ui.perfetto.dev/).
 
 ## Features
 
@@ -72,10 +107,19 @@ having too much effect on the actual runtime of the application. It's possible t
 cost could be further reduced by writing the perfetto format directly rather than converting to an a
 Prost in-memory representation first, but this hasn't been a priority.
 
+## Supported features
+
+* **Span tracing** - Low-overhead recording of execution spans with arguments
+* **Counter tracks** - Time-series data for metrics like CPU%, memory usage, etc.
+* **Multi-threaded tracing** - Collect traces from multiple threads
+* **Custom counter units** - Support for standard units (bytes, time, count) and custom units (%, fps, etc.)
+
 ## Unsupported features
 
 This crate doesn't support async usage. Put another way, it assumes that a span opened on one thread
 will be closed on that same thread. tracing-perfetto-sdk-layer has support for async.
+
+This crate doesn't support flow events (arrows linking different parts of traces).
 
 tracing-perfetto-sdk-layer also has support for receiving perfetto tracing data from the system,
 allowing the trace to also include things like scheduling events.

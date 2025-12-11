@@ -81,6 +81,8 @@ pub struct TrackEvent {
     pub name_field: ::core::option::Option<track_event::NameField>,
     #[prost(oneof = "track_event::SourceLocationField", tags = "33, 34")]
     pub source_location_field: ::core::option::Option<track_event::SourceLocationField>,
+    #[prost(oneof = "track_event::CounterValueField", tags = "30, 44")]
+    pub counter_value_field: ::core::option::Option<track_event::CounterValueField>,
 }
 /// Nested message and enum types in `TrackEvent`.
 pub mod track_event {
@@ -99,6 +101,7 @@ pub mod track_event {
     pub enum Type {
         SliceBegin = 1,
         SliceEnd = 2,
+        Counter = 4,
     }
     impl Type {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -109,6 +112,7 @@ pub mod track_event {
             match self {
                 Self::SliceBegin => "TYPE_SLICE_BEGIN",
                 Self::SliceEnd => "TYPE_SLICE_END",
+                Self::Counter => "TYPE_COUNTER",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -116,6 +120,7 @@ pub mod track_event {
             match value {
                 "TYPE_SLICE_BEGIN" => Some(Self::SliceBegin),
                 "TYPE_SLICE_END" => Some(Self::SliceEnd),
+                "TYPE_COUNTER" => Some(Self::Counter),
                 _ => None,
             }
         }
@@ -134,6 +139,13 @@ pub mod track_event {
         #[prost(uint64, tag = "34")]
         SourceLocationIid(u64),
     }
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum CounterValueField {
+        #[prost(int64, tag = "30")]
+        CounterValue(i64),
+        #[prost(double, tag = "44")]
+        DoubleCounterValue(f64),
+    }
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TrackDescriptor {
@@ -145,6 +157,8 @@ pub struct TrackDescriptor {
     pub process: ::core::option::Option<ProcessDescriptor>,
     #[prost(message, optional, tag = "4")]
     pub thread: ::core::option::Option<ThreadDescriptor>,
+    #[prost(message, optional, tag = "8")]
+    pub counter: ::core::option::Option<CounterDescriptor>,
     #[prost(oneof = "track_descriptor::StaticOrDynamicName", tags = "2")]
     pub static_or_dynamic_name: ::core::option::Option<
         track_descriptor::StaticOrDynamicName,
@@ -175,6 +189,62 @@ pub struct ThreadDescriptor {
     pub tid: ::core::option::Option<i32>,
     #[prost(string, optional, tag = "5")]
     pub thread_name: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CounterDescriptor {
+    #[prost(enumeration = "counter_descriptor::Unit", optional, tag = "1")]
+    pub unit: ::core::option::Option<i32>,
+    #[prost(string, optional, tag = "2")]
+    pub unit_name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(int64, optional, tag = "3")]
+    pub unit_multiplier: ::core::option::Option<i64>,
+    #[prost(bool, optional, tag = "4")]
+    pub is_incremental: ::core::option::Option<bool>,
+}
+/// Nested message and enum types in `CounterDescriptor`.
+pub mod counter_descriptor {
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
+    #[repr(i32)]
+    pub enum Unit {
+        Unspecified = 0,
+        TimeNs = 1,
+        Count = 2,
+        SizeBytes = 3,
+    }
+    impl Unit {
+        /// String value of the enum field names used in the ProtoBuf definition.
+        ///
+        /// The values are not transformed in any way and thus are considered stable
+        /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+        pub fn as_str_name(&self) -> &'static str {
+            match self {
+                Self::Unspecified => "UNIT_UNSPECIFIED",
+                Self::TimeNs => "UNIT_TIME_NS",
+                Self::Count => "UNIT_COUNT",
+                Self::SizeBytes => "UNIT_SIZE_BYTES",
+            }
+        }
+        /// Creates an enum from field names used in the ProtoBuf definition.
+        pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+            match value {
+                "UNIT_UNSPECIFIED" => Some(Self::Unspecified),
+                "UNIT_TIME_NS" => Some(Self::TimeNs),
+                "UNIT_COUNT" => Some(Self::Count),
+                "UNIT_SIZE_BYTES" => Some(Self::SizeBytes),
+                _ => None,
+            }
+        }
+    }
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SourceLocation {
