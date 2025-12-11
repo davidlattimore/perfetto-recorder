@@ -1,6 +1,7 @@
+use perfetto_recorder::CounterUnit;
 use perfetto_recorder::ThreadTraceData;
 use perfetto_recorder::TraceBuilder;
-use perfetto_recorder::{CounterUnit, scope};
+use perfetto_recorder::scope;
 use std::time::Instant;
 
 const N: u32 = 100_000;
