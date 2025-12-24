@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: davidlattimore/wild-action@latest
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/bin/
@@ -40,6 +40,27 @@ jobs:
       - run: cargo test --features enable
       - run: cargo run --release --example benchmark --features enable
       - run: cargo run --release --example rayon --features enable -- /dev/null
+
+  windows-test:
+    name: Windows test
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        id: rust-toolchain
+      - uses: actions/cache@v5
+        with:
+          path: |
+            C:\Users\runneradmin\.cargo\registry\index\
+            C:\Users\runneradmin\.cargo\registry\cache\
+            C:\Users\runneradmin\.cargo\git\db\
+            target\
+          key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo build
+      - run: cargo test
 
   clippy:
     name: Clippy
