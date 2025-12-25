@@ -898,7 +898,7 @@ impl TraceBuilder {
 mod tests {
     use super::*;
 
-    #[cfg(feature = "enable")]
+    #[cfg_attr(not(feature = "enable"), ignore)]
     #[test]
     fn test_basic_usage() {
         start().unwrap();
@@ -922,7 +922,7 @@ mod tests {
             .encode_to_vec();
     }
 
-    #[cfg(not(feature = "enable"))]
+    #[cfg_attr(feature = "enable", ignore)]
     #[test]
     fn test_no_execution_when_disabled() {
         fn do_not_run() -> u32 {
@@ -954,7 +954,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "enable")]
+    #[cfg_attr(not(feature = "enable"), ignore)]
     #[test]
     fn test_counter_tracks() {
         start().unwrap();
