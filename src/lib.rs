@@ -6,7 +6,6 @@ use crate::schema::DebugAnnotation;
 use crate::schema::ThreadDescriptor;
 use crate::schema::TracePacket;
 use crate::schema::TrackDescriptor;
-use nix::unistd::Pid;
 use prost::Message;
 use rand::RngCore;
 use rand::rngs::ThreadRng;
@@ -15,6 +14,14 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
+
+#[cfg(unix)]
+#[path = "os_unix.rs"]
+mod os;
+
+#[cfg(windows)]
+#[path = "os_windows.rs"]
+mod os;
 
 #[cfg(feature = "fastant")]
 type Instant = fastant::Instant;
@@ -96,8 +103,8 @@ pub struct SpanGuard {
 /// Trace events that occurred on a single thread.
 pub struct ThreadTraceData {
     events: Vec<Event>,
-    pid: Pid,
-    tid: Pid,
+    pid: os::Pid,
+    tid: os::Pid,
     thread_name: Option<String>,
 }
 
@@ -106,8 +113,8 @@ impl ThreadTraceData {
         let thread = std::thread::current();
         Self {
             events: EVENTS.take(),
-            pid: nix::unistd::getpid(),
-            tid: nix::unistd::gettid(),
+            pid: os::getpid(),
+            tid: os::gettid(),
             thread_name: thread.name().map(str::to_owned),
         }
     }
@@ -383,7 +390,7 @@ pub struct TraceBuilder {
     name_ids: HashMap<&'static str, u64>,
     debug_annotation_name_ids: HashMap<&'static str, u64>,
     source_location_ids: HashMap<(&'static str, u32), u64>,
-    thread_uuids: HashMap<Pid, Uuid>,
+    thread_uuids: HashMap<os::Pid, Uuid>,
     sequence_id: u32,
     #[cfg(feature = "fastant")]
     time_anchor: fastant::Anchor,
@@ -608,8 +615,8 @@ impl TraceBuilder {
                 TrackDescriptor {
                     uuid: Some(uuid.0),
                     thread: Some(ThreadDescriptor {
-                        pid: Some(thread.pid.as_raw()),
-                        tid: Some(thread.tid.as_raw()),
+                        pid: Some(thread.pid.as_i32()),
+                        tid: Some(thread.tid.as_i32()),
                         thread_name: thread.thread_name.clone(),
                     }),
                     ..Default::default()
