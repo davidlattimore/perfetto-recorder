@@ -1,6 +1,6 @@
 [package]
 name = "perfetto-recorder"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 description = "A low overhead way to record perfetto traces from Rust code"
 repository = "https://github.com/davidlattimore/perfetto-recorder"
