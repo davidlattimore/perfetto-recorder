@@ -140,6 +140,7 @@ version = "0.3.0"
 dependencies = [
  "anyhow",
  "fastant",
+ "libc",
  "nix",
  "prost",
  "rand",
