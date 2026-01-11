@@ -15,7 +15,11 @@ use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 
-#[cfg(unix)]
+#[cfg(target_os = "macos")]
+#[path = "os_macos.rs"]
+mod os;
+
+#[cfg(all(unix, not(target_os = "macos")))]
 #[path = "os_unix.rs"]
 mod os;
 
