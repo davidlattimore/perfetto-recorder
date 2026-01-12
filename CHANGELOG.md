@@ -1,7 +1,11 @@
+# 0.3.1
+
+* Mac support (#7)
+
 # 0.3.0
 
 * Counter track support (#2)
-* Windows support 
+* Windows support (#4)
 
 # 0.2.0
 
