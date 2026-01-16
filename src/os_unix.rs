@@ -1,16 +1,9 @@
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
-pub(crate) struct Pid(nix::unistd::Pid);
+use crate::Pid;
 
 pub(crate) fn getpid() -> Pid {
-    Pid(nix::unistd::getpid())
+    Pid(nix::unistd::getpid().as_raw())
 }
 
 pub(crate) fn gettid() -> Pid {
-    Pid(nix::unistd::gettid())
-}
-
-impl Pid {
-    pub(crate) fn as_i32(self) -> i32 {
-        self.0.as_raw()
-    }
+    Pid(nix::unistd::gettid().as_raw())
 }

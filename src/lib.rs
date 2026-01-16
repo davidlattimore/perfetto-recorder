@@ -96,6 +96,9 @@ macro_rules! start_span {
     };
 }
 
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+struct Pid(i32);
+
 /// A guard that when dropped will end a span.
 ///
 /// Created by the [start_span] macro.
@@ -107,8 +110,8 @@ pub struct SpanGuard {
 /// Trace events that occurred on a single thread.
 pub struct ThreadTraceData {
     events: Vec<Event>,
-    pid: os::Pid,
-    tid: os::Pid,
+    pid: Pid,
+    tid: Pid,
     thread_name: Option<String>,
 }
 
@@ -394,7 +397,7 @@ pub struct TraceBuilder {
     name_ids: HashMap<&'static str, u64>,
     debug_annotation_name_ids: HashMap<&'static str, u64>,
     source_location_ids: HashMap<(&'static str, u32), u64>,
-    thread_uuids: HashMap<os::Pid, Uuid>,
+    thread_uuids: HashMap<Pid, Uuid>,
     sequence_id: u32,
     #[cfg(feature = "fastant")]
     time_anchor: fastant::Anchor,
@@ -619,8 +622,8 @@ impl TraceBuilder {
                 TrackDescriptor {
                     uuid: Some(uuid.0),
                     thread: Some(ThreadDescriptor {
-                        pid: Some(thread.pid.as_i32()),
-                        tid: Some(thread.tid.as_i32()),
+                        pid: Some(thread.pid.0),
+                        tid: Some(thread.tid.0),
                         thread_name: thread.thread_name.clone(),
                     }),
                     ..Default::default()
