@@ -15,16 +15,20 @@ use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "enable", target_os = "macos"))]
 #[path = "os_macos.rs"]
 mod os;
 
-#[cfg(all(unix, not(target_os = "macos")))]
+#[cfg(all(feature = "enable", unix, not(target_os = "macos")))]
 #[path = "os_unix.rs"]
 mod os;
 
-#[cfg(windows)]
+#[cfg(all(feature = "enable", windows))]
 #[path = "os_windows.rs"]
+mod os;
+
+#[cfg(not(feature = "enable"))]
+#[path = "os_disabled.rs"]
 mod os;
 
 #[cfg(feature = "fastant")]
