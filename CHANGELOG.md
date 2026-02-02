@@ -1,3 +1,7 @@
+# 0.3.2
+
+* Allow building on unsupported targets when feature is disabled (#10)
+
 # 0.3.1
 
 * Mac support (#7)
