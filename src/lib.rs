@@ -7,7 +7,7 @@ use crate::schema::ThreadDescriptor;
 use crate::schema::TracePacket;
 use crate::schema::TrackDescriptor;
 use prost::Message;
-use rand::RngCore;
+use rand::Rng;
 use rand::rngs::ThreadRng;
 use std::cell::RefCell;
 use std::collections::HashMap;
